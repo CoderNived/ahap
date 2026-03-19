@@ -1,0 +1,116 @@
+/* ── PRIMITIVE TOKENS (raw values, never used directly in components) ── */
+:root {
+  --primitive-blue-900: #0d47a1;
+  --primitive-blue-700: #1565c0;
+  --primitive-blue-500: #1976d2;
+  --primitive-blue-300: #64b5f6;
+  --primitive-blue-100: #e3f2fd;
+
+  --primitive-navy-950: #060d1f;
+  --primitive-navy-900: #0a1628;
+  --primitive-navy-800: #0f2040;
+  --primitive-navy-700: #162a52;
+
+  --primitive-gray-100: #f5f7fa;
+  --primitive-gray-200: #e8ecf0;
+  --primitive-gray-400: #9aa3b0;
+  --primitive-gray-600: #555e6d;
+  --primitive-gray-900: #111318;
+
+  --primitive-white: #ffffff;
+  --primitive-error: #d32f2f;
+  --primitive-success: #2e7d32;
+  --primitive-warning: #f57c00;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-theme: 300ms ease;
+}
+
+/* ── LIGHT THEME (default) ── */
+[data-theme="light"] {
+  --color-brand-primary:     var(--primitive-blue-700);
+  --color-brand-hover:       var(--primitive-blue-900);
+  --color-brand-subtle:      var(--primitive-blue-100);
+
+  --color-bg-app:            var(--primitive-gray-100);
+  --color-surface-default:   var(--primitive-white);
+  --color-surface-raised:    var(--primitive-gray-200);
+  --color-surface-input:     var(--primitive-white);
+
+  --color-text-primary:      var(--primitive-gray-900);
+  --color-text-secondary:    var(--primitive-gray-600);
+  --color-text-muted:        var(--primitive-gray-400);
+  --color-text-on-brand:     var(--primitive-white);
+
+  --color-border:            var(--primitive-gray-200);
+  --color-border-focus:      var(--primitive-blue-500);
+
+  --color-error:             var(--primitive-error);
+  --color-success:           var(--primitive-success);
+
+  --color-user-bubble:       var(--primitive-blue-700);
+  --color-user-bubble-text:  var(--primitive-white);
+  --color-ai-bubble:         var(--primitive-white);
+  --color-ai-bubble-text:    var(--primitive-gray-900);
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+}
+
+/* ── DARK THEME ── */
+[data-theme="dark"] {
+  --color-brand-primary:     var(--primitive-blue-500);
+  --color-brand-hover:       var(--primitive-blue-300);
+  --color-brand-subtle:      var(--primitive-navy-700);
+
+  --color-bg-app:            var(--primitive-navy-950);
+  --color-surface-default:   var(--primitive-navy-900);
+  --color-surface-raised:    var(--primitive-navy-800);
+  --color-surface-input:     var(--primitive-navy-800);
+
+  --color-text-primary:      #e8edf5;
+  --color-text-secondary:    #9aa3b0;
+  --color-text-muted:        #5a6478;
+  --color-text-on-brand:     var(--primitive-white);
+
+  --color-border:            var(--primitive-navy-700);
+  --color-border-focus:      var(--primitive-blue-300);
+
+  --color-error:             #ef5350;
+  --color-success:           #66bb6a;
+
+  --color-user-bubble:       var(--primitive-blue-500);
+  --color-user-bubble-text:  var(--primitive-white);
+  --color-ai-bubble:         var(--primitive-navy-800);
+  --color-ai-bubble-text:    #e8edf5;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+}
