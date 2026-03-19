@@ -1,8 +1,3 @@
-# Step 1: Load raw PDF Data
-# Step 2: Create Chunks
-# Step 3: Create Vector Embeddings
-# Step 4: Store Embeddings in FAISS
-
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -35,6 +30,6 @@ def create_embeddings(text_chunks):
     return vector_embeddings, embeddings
 vector_embeddings, embeddings = create_embeddings(text_chunks)
 
-print("Length of Vector Embeddings:", len(vector_embeddings))  # ✅ number of chunks
-print("Dimension of Embeddings:", len(vector_embeddings[0]))   # ✅ vector size
+print("Length of Vector Embeddings:", len(vector_embeddings))  
+print("Dimension of Embeddings:", len(vector_embeddings[0]))   
 # Step 4: Store Embeddings in FAISS
