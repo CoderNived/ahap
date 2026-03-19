@@ -26,3 +26,15 @@ def create_chunks(documents, chunk_size=1000, chunk_overlap=200):
                                                    chunk_overlap = 50)
     text_chunks = text_splitter.split_documents(documents)
     return text_chunks
+text_chunks = create_chunks(documents)
+print("Length of Text Chunks:", len(text_chunks))
+# Step 3: Create Vector Embeddings
+def create_embeddings(text_chunks):
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    vector_embeddings = embeddings.embed_documents([chunk.page_content for chunk in text_chunks])
+    return vector_embeddings, embeddings
+vector_embeddings, embeddings = create_embeddings(text_chunks)
+
+print("Length of Vector Embeddings:", len(vector_embeddings))  # ✅ number of chunks
+print("Dimension of Embeddings:", len(vector_embeddings[0]))   # ✅ vector size
+# Step 4: Store Embeddings in FAISS
