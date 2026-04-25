@@ -4,10 +4,11 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const dotenv = require('dotenv');
 const path = require('path');
+const connectDB = require('./config/db');
 
 // Load environment variables from root .env file
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
+connectDB();
 // Initialize express app
 const app = express();
 const PORT = process.env.PORT || 5000;
