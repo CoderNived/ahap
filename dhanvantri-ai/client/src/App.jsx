@@ -1,9 +1,7 @@
+import ChatPage from './pages/ChatPage';
+
 function App() {
-  return (
-    <div className="app">
-      <h1>Dhanvantri.ai</h1>
-    </div>
-  );
+  return <ChatPage />;
 }
 
 export default App;
