@@ -1,0 +1,64 @@
+.input-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.input-bar__textarea {
+  flex: 1;
+  background-color: var(--color-surface-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  font-family: var(--font-sans);
+  resize: none;
+  outline: none;
+  min-height: 44px;
+  max-height: 200px;
+  overflow-y: auto;
+  line-height: 1.5;
+  transition: border-color 0.2s;
+}
+
+.input-bar__textarea:focus {
+  border-color: var(--color-primary);
+}
+
+.input-bar__textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input-bar__textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.input-bar__send {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  border: none;
+  background-color: var(--color-primary);
+  color: white;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+
+.input-bar__send:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+}
+
+.input-bar__send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
