@@ -75,5 +75,39 @@ const analyzeVoice = async (req, res) => {
     });
   }
 };
+// ─── Image Analysis ────────────────────────────────────────
+const analyzeImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Image file is required',
+      });
+    }
 
-module.exports = { analyzeText, analyzeVoice };
+    const response = {
+      file: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size,
+      mimeType: req.file.mimetype,
+      type: 'image',
+      status: 'received',
+      message: 'Image received. Computer vision analysis coming in Phase 6.',
+      disclaimer: '⚠️ This is not a medical diagnosis. Please consult a healthcare professional.',
+      timestamp: new Date().toISOString(),
+      userId: req.user.id,
+    };
+
+    res.status(200).json({
+      status: 'success',
+      data: response,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
+};
+module.exports = { analyzeText, analyzeVoice, analyzeImage };
