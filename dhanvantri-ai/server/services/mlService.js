@@ -1,5 +1,3 @@
-const http = require('http');
-
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:8000';
 
 const callMLService = async (endpoint, method = 'GET', body = null) => {
@@ -30,4 +28,13 @@ const callMLService = async (endpoint, method = 'GET', body = null) => {
   }
 };
 
-module.exports = { callMLService, ML_SERVICE_URL };
+const analyzeTextNLP = async (text) => {
+  try {
+    const result = await callMLService('/api/nlp/analyze', 'POST', { text });
+    return { success: true, data: result.data };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
+module.exports = { callMLService, analyzeTextNLP, ML_SERVICE_URL };

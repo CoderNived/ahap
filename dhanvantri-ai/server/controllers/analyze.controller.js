@@ -1,4 +1,6 @@
 const { analyzeWithAI } = require('../services/ai.service');
+const { analyzeTextNLP } = require('../services/mlService');
+
 // ─── Text Analysis ────────────────────────────────────────
 const analyzeText = async (req, res) => {
   try {
@@ -19,26 +21,27 @@ const analyzeText = async (req, res) => {
       });
     }
 
-    // Call Grok AI
+    // Step 1 — Run NLP extraction
+    const nlpResult = await analyzeTextNLP(text);
+
+    // Step 2 — Run AI analysis (will work once Grok credits added)
     const aiResult = await analyzeWithAI(text);
 
-    if (!aiResult.success) {
-      return res.status(500).json({
-        status: 'error',
-        message: 'AI analysis failed. Please try again.',
-        detail: aiResult.error,
-      });
-    }
+    // Step 3 — Build combined response
+    const response = {
+      input: text,
+      type: 'text',
+      nlp: nlpResult.success ? nlpResult.data.entities : null,
+      ai: aiResult.success ? aiResult.data : null,
+      status: 'success',
+      disclaimer: '⚠️ This is not a medical diagnosis. Please consult a healthcare professional.',
+      timestamp: new Date().toISOString(),
+      userId: req.user.id,
+    };
 
     res.status(200).json({
       status: 'success',
-      data: {
-        input: text,
-        type: 'text',
-        analysis: aiResult.data,
-        timestamp: new Date().toISOString(),
-        userId: req.user.id,
-      },
+      data: response,
     });
 
   } catch (error) {
