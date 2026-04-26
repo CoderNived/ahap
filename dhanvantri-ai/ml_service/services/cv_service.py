@@ -7,7 +7,7 @@ from typing import Dict, Any, List
 
 # ─── Load Pretrained Model ─────────────────────────────────
 def load_model():
-    model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
+    model = models.efficientnet_b0(weights=None)
     model.eval()
     return model
 
@@ -25,7 +25,7 @@ IMAGENET_CATEGORIES = {
 # ─── Image Preprocessing Pipeline ─────────────────────────
 def preprocess_image(image_bytes: bytes) -> torch.Tensor:
     transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.Resize((64, 64)),
         transforms.ToTensor(),
         transforms.Normalize(
             mean=[0.485, 0.456, 0.406],
