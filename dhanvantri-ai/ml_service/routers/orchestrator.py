@@ -164,3 +164,107 @@ async def route_to_model(
             "error": str(e),
             "results": {}
         }
+# ─── Medical Reasoning Agent ──────────────────────────────
+async def medical_reasoning_agent(
+        intent: str,
+        user_input: str,
+        model_results: Dict[str, Any]) -> Dict[str, Any]:
+
+    try:
+        llm = get_llm()
+
+        # Build context from model results
+        context_parts = []
+
+        if "nlp" in model_results and model_results["nlp"]["success"]:
+            nlp_data = model_results["nlp"]["data"]
+            context_parts.append(f"""
+NLP Analysis:
+- Symptoms detected: {', '.join(nlp_data.get('symptoms', [])) or 'none'}
+- Body parts: {', '.join(nlp_data.get('body_parts', [])) or 'none'}
+- Duration: {nlp_data.get('duration', 'not specified')}
+- Severity: {nlp_data.get('severity', 'not specified')}
+- Confidence: {nlp_data.get('confidence', 0)}
+""")
+
+        if "cv" in model_results and model_results["cv"].get("success"):
+            cv_data = model_results["cv"]
+            risk = cv_data.get("risk_signal", {})
+            context_parts.append(f"""
+Image Analysis:
+- Risk level: {risk.get('risk_level', 'unknown')}
+- Top confidence: {risk.get('top_confidence', 0)}
+- Recommendation: {risk.get('recommendation', 'none')}
+""")
+
+        if "forecast" in model_results and model_results["forecast"].get("success"):
+            forecast_data = model_results["forecast"]
+            context_parts.append(f"""
+Vitals Forecast:
+- Overall risk: {forecast_data.get('overall_risk', 'unknown')}
+- Risk assessment: {forecast_data.get('risk_assessment', {})}
+- Rows analyzed: {forecast_data.get('data_summary', {}).get('rows_analyzed', 0)}
+""")
+
+        context = "\n".join(context_parts) if context_parts else "No model results available."
+
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", """You are Dhanvantri, a careful and empathetic AI health assistant.
+
+STRICT RULES — NEVER VIOLATE:
+1. NEVER provide a medical diagnosis
+2. NEVER prescribe medications or treatments
+3. ALWAYS recommend consulting a healthcare professional
+4. Only provide general health observations and information
+5. Be empathetic and clear in your communication
+6. Always include a disclaimer
+
+Your response must be a JSON object with this exact structure:
+{{
+    "observations": "2-3 sentences describing what the data suggests",
+    "key_findings": ["finding 1", "finding 2", "finding 3"],
+    "general_advice": "1-2 sentences of general wellness advice only",
+    "urgency_level": "low|medium|high",
+    "when_to_seek_help": "specific signs that warrant immediate medical attention",
+    "confidence": 0.0,
+    "disclaimer": "This analysis is for informational purposes only and does not constitute medical advice."
+}}"""),
+            ("human", """User reported: {user_input}
+
+Analysis results:
+{context}
+
+Provide a careful, non-diagnostic health observation.""")
+        ])
+
+        chain = prompt | llm
+        result = await chain.ainvoke({
+            "user_input": user_input,
+            "context": context
+        })
+
+        # Parse JSON response
+        import json
+        response_text = result.content.strip()
+        clean = response_text.replace("```json", "").replace("```", "").strip()
+        parsed = json.loads(clean)
+
+        return {
+            "success": True,
+            "reasoning": parsed
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "reasoning": {
+                "observations": "Analysis could not be completed at this time.",
+                "key_findings": [],
+                "general_advice": "Please consult a healthcare professional.",
+                "urgency_level": "unknown",
+                "when_to_seek_help": "If you feel unwell, seek medical attention.",
+                "confidence": 0.0,
+                "disclaimer": "This analysis is for informational purposes only."
+            }
+        }
