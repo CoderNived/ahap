@@ -368,3 +368,71 @@ def build_explainability_output(
         "sections": sections,
         "disclaimer": "⚠️ This analysis is for informational purposes only and does not constitute medical advice. Always consult a qualified healthcare professional.",
     }
+# ─── Main Orchestration Pipeline ──────────────────────────
+async def run_orchestration_pipeline(
+        text: Optional[str] = None,
+        image_bytes: Optional[bytes] = None,
+        vitals_bytes: Optional[bytes] = None) -> Dict[str, Any]:
+
+    try:
+        # Step 1 — Detect intent
+        input_text = text or ""
+        if image_bytes and not text:
+            input_text = "medical image uploaded for analysis"
+        elif vitals_bytes and not text:
+            input_text = "vitals csv data uploaded for forecasting"
+
+        intent_result = await detect_intent(input_text)
+        intent = intent_result["intent"]
+
+        # Override intent based on file type if provided
+        if image_bytes:
+            intent = INTENT_IMAGE_ANALYSIS
+            intent_result["intent"] = intent
+        elif vitals_bytes:
+            intent = INTENT_VITALS_FORECAST
+            intent_result["intent"] = intent
+
+        # Step 2 — Route to correct model
+        model_results_wrapper = await route_to_model(
+            intent=intent,
+            text=text,
+            image_bytes=image_bytes,
+            vitals_bytes=vitals_bytes
+        )
+        model_results = model_results_wrapper.get("results", {})
+
+        # Step 3 — Medical reasoning
+        reasoning = await medical_reasoning_agent(
+            intent=intent,
+            user_input=input_text,
+            model_results=model_results
+        )
+
+        # Step 4 — Build explainability output
+        explanation = build_explainability_output(
+            intent_result=intent_result,
+            model_results=model_results,
+            reasoning=reasoning
+        )
+
+        # Step 5 — Final response
+        return {
+            "success": True,
+            "pipeline": {
+                "intent": intent_result,
+                "model_outputs": model_results,
+                "reasoning": reasoning.get("reasoning", {}),
+                "explanation": explanation,
+            },
+            "disclaimer": "⚠️ This is not a medical diagnosis. Please consult a qualified healthcare professional for any health concerns.",
+            "timestamp": __import__('datetime').datetime.utcnow().isoformat(),
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "disclaimer": "⚠️ This is not a medical diagnosis. Please consult a qualified healthcare professional.",
+        }
+    # just to make a commit work
