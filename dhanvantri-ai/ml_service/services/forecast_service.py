@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from typing import Dict, Any, Tuple, List
+from models.lstm_model import train_lstm, generate_forecast, calculate_confidence_intervals
 import io
 
 # ─── Expected Columns ─────────────────────────────────────
@@ -116,3 +117,93 @@ def assess_vital_risks(stats: Dict[str, Any]) -> Dict[str, str]:
             risks['temperature'] = 'normal'
 
     return risks
+# ─── Main Forecasting Pipeline ────────────────────────────
+def run_forecasting_pipeline(
+        file_bytes: bytes,
+        forecast_steps: int = 3) -> Dict[str, Any]:
+
+    try:
+        # Step 1 — Parse and validate CSV
+        df, warnings = parse_vitals_csv(file_bytes)
+
+        if len(df) < 6:
+            return {
+                "success": False,
+                "error": "Need at least 6 rows of vitals data for forecasting."
+            }
+
+        # Step 2 — Calculate statistics
+        stats = calculate_vital_stats(df)
+
+        # Step 3 — Assess current risks
+        risks = assess_vital_risks(stats)
+
+        # Step 4 — Normalize data
+        scaled_data, scaler = normalize_vitals(df)
+
+        # Step 5 — Train LSTM
+        model, losses = train_lstm(
+            scaled_data,
+            epochs=50,
+            seq_length=min(5, len(df) - 1)
+        )
+
+        # Step 6 — Generate forecast
+        seq_length = min(5, len(df) - 1)
+        raw_predictions = generate_forecast(
+            model, scaled_data,
+            steps=forecast_steps,
+            seq_length=seq_length
+        )
+
+        # Step 7 — Inverse transform predictions back to original scale
+        predictions_original = scaler.inverse_transform(raw_predictions)
+        intervals = calculate_confidence_intervals(predictions_original)
+
+        # Step 8 — Format predictions
+        numeric_cols = [c for c in REQUIRED_COLUMNS if c != 'timestamp']
+        formatted_predictions = []
+
+        for i, pred in enumerate(predictions_original):
+            step = {}
+            for j, col in enumerate(numeric_cols):
+                step[col] = {
+                    "predicted": round(float(pred[j]), 2),
+                    "lower":     round(float(intervals['lower'][i][j]), 2),
+                    "upper":     round(float(intervals['upper'][i][j]), 2),
+                }
+            formatted_predictions.append({
+                "step": i + 1,
+                "label": f"Next reading {i + 1}",
+                "vitals": step
+            })
+
+        # Step 9 — Calculate overall trend
+        overall_risk = "normal"
+        if any(v in ["abnormal", "high", "low", "fever", "hypothermia_risk"]
+               for v in risks.values()):
+            overall_risk = "attention_needed"
+
+        return {
+            "success": True,
+            "data_summary": {
+                "rows_analyzed": len(df),
+                "warnings": warnings,
+            },
+            "current_stats": stats,
+            "risk_assessment": risks,
+            "overall_risk": overall_risk,
+            "forecast": formatted_predictions,
+            "model_info": {
+                "type": "LSTM",
+                "epochs": 50,
+                "final_loss": losses[-1] if losses else None,
+                "forecast_steps": forecast_steps,
+            },
+            "disclaimer": "⚠️ These are statistical trend predictions only. Not a medical diagnosis. Please consult a healthcare professional.",
+        }
+
+    except ValueError as e:
+        return {"success": False, "error": str(e)}
+    except Exception as e:
+        return {"success": False, "error": f"Forecasting failed: {str(e)}"}
