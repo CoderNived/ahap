@@ -268,3 +268,103 @@ Provide a careful, non-diagnostic health observation.""")
                 "disclaimer": "This analysis is for informational purposes only."
             }
         }
+# ─── Explainability Agent ─────────────────────────────────
+def build_explainability_output(
+        intent_result: Dict[str, Any],
+        model_results: Dict[str, Any],
+        reasoning: Dict[str, Any]) -> Dict[str, Any]:
+
+    # ── Confidence Calculation ─────────────────────────────
+    confidence_scores = []
+
+    # Intent confidence
+    confidence_scores.append(intent_result.get("confidence", 0.5))
+
+    # NLP confidence
+    if "nlp" in model_results and model_results["nlp"].get("success"):
+        nlp_confidence = model_results["nlp"]["data"].get("confidence", 0.5)
+        confidence_scores.append(nlp_confidence)
+
+    # Reasoning confidence
+    if reasoning.get("success"):
+        reasoning_confidence = reasoning["reasoning"].get("confidence", 0.5)
+        confidence_scores.append(reasoning_confidence)
+
+    overall_confidence = round(
+        sum(confidence_scores) / len(confidence_scores), 2
+    ) if confidence_scores else 0.0
+
+    # ── Urgency Color Mapping ──────────────────────────────
+    urgency_level = reasoning.get("reasoning", {}).get("urgency_level", "unknown")
+    urgency_colors = {
+        "low":     "#22c55e",   # green
+        "medium":  "#f59e0b",   # yellow
+        "high":    "#ef4444",   # red
+        "unknown": "#94a3b8",   # gray
+    }
+
+    # ── Build Explanation Sections ────────────────────────
+    sections = []
+
+    # Observations section
+    if reasoning.get("success"):
+        r = reasoning["reasoning"]
+        sections.append({
+            "type": "observations",
+            "title": "Health Observations",
+            "content": r.get("observations", ""),
+        })
+
+        if r.get("key_findings"):
+            sections.append({
+                "type": "findings",
+                "title": "Key Findings",
+                "content": r.get("key_findings", []),
+            })
+
+        sections.append({
+            "type": "advice",
+            "title": "General Advice",
+            "content": r.get("general_advice", ""),
+        })
+
+        sections.append({
+            "type": "seek_help",
+            "title": "When to Seek Medical Help",
+            "content": r.get("when_to_seek_help", ""),
+        })
+
+    # NLP findings section
+    if "nlp" in model_results and model_results["nlp"].get("success"):
+        nlp_data = model_results["nlp"]["data"]
+        if nlp_data.get("symptoms"):
+            sections.append({
+                "type": "symptoms_detected",
+                "title": "Symptoms Detected",
+                "content": nlp_data["symptoms"],
+            })
+        if nlp_data.get("body_parts"):
+            sections.append({
+                "type": "body_parts",
+                "title": "Body Parts Mentioned",
+                "content": nlp_data["body_parts"],
+            })
+
+    # Forecast section
+    if "forecast" in model_results and model_results["forecast"].get("success"):
+        forecast_data = model_results["forecast"]
+        sections.append({
+            "type": "vitals_risk",
+            "title": "Vitals Risk Assessment",
+            "content": forecast_data.get("risk_assessment", {}),
+        })
+
+    return {
+        "intent": intent_result.get("intent"),
+        "intent_method": intent_result.get("method"),
+        "overall_confidence": overall_confidence,
+        "urgency_level": urgency_level,
+        "urgency_color": urgency_colors.get(urgency_level, "#94a3b8"),
+        "sections": sections,
+        "disclaimer": "⚠️ This analysis is for informational purposes only and does not constitute medical advice. Always consult a qualified healthcare professional.",
+    }
