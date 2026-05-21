@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers.cv import router as cv_router
 from routers.nlp import router as nlp_router
+from routers.forecast import router as forecast_router
 from dotenv import load_dotenv
 import os
 
@@ -24,6 +25,7 @@ app.add_middleware(
 # ─── Register Routers ──────────────────────────────────────
 app.include_router(nlp_router, prefix="/api/nlp", tags=["NLP"])
 app.include_router(cv_router, prefix="/api/cv", tags=["Computer Vision"])
+app.include_router(forecast_router, prefix="/api/forecast", tags=["Forecasting"])
 # ─── Health Route ──────────────────────────────────────────
 @app.get("/api/health")
 async def health_check():
