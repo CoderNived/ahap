@@ -1,6 +1,8 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from typing import Dict, Any, Optional
+from services.nlp_service import extract_medical_entities
+from services.forecast_service import run_forecasting_pipeline
 import os
 
 # ─── Intent Types ─────────────────────────────────────────
@@ -108,4 +110,57 @@ async def detect_intent(text: str) -> Dict[str, Any]:
         "intent": llm_intent,
         "method": "llm_based",
         "confidence": 0.75 if llm_intent != INTENT_UNKNOWN else 0.0
-    }
+    }# ─── Model Router ─────────────────────────────────────────
+async def route_to_model(
+        intent: str,
+        text: Optional[str] = None,
+        image_bytes: Optional[bytes] = None,
+        vitals_bytes: Optional[bytes] = None) -> Dict[str, Any]:
+
+    results = {}
+
+    try:
+        # Route to NLP
+        if intent == INTENT_TEXT_SYMPTOM and text:
+            nlp_result = extract_medical_entities(text)
+            results["nlp"] = {
+                "success": True,
+                "data": nlp_result
+            }
+
+        # Route to CV
+        elif intent == INTENT_IMAGE_ANALYSIS and image_bytes:
+            from services.cv_service import analyze_medical_image
+            cv_result = analyze_medical_image(image_bytes)
+            results["cv"] = cv_result
+
+        # Route to Forecasting
+        elif intent == INTENT_VITALS_FORECAST and vitals_bytes:
+            forecast_result = run_forecasting_pipeline(vitals_bytes)
+            results["forecast"] = forecast_result
+
+        # General health — NLP only if text provided
+        elif intent == INTENT_GENERAL_HEALTH and text:
+            nlp_result = extract_medical_entities(text)
+            results["nlp"] = {
+                "success": True,
+                "data": nlp_result
+            }
+
+        # Unknown intent
+        else:
+            results["error"] = "Could not route to appropriate model"
+
+        return {
+            "success": True,
+            "intent": intent,
+            "results": results
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "intent": intent,
+            "error": str(e),
+            "results": {}
+        }
