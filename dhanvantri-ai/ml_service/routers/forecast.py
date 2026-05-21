@@ -10,8 +10,14 @@ async def forecast_vitals(
     steps: int = 3
 ):
     # Validate file type
-    allowed_types = ["text/csv", "application/vnd.ms-excel",
-                     "application/csv", "text/plain"]
+    allowed_types = [
+    "text/csv",
+    "application/vnd.ms-excel",
+    "application/csv",
+    "text/plain",
+    "application/octet-stream",
+    "application/x-csv",
+]
     if file.content_type not in allowed_types:
         raise HTTPException(
             status_code=400,

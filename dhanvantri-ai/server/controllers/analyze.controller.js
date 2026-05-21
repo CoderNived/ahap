@@ -1,6 +1,5 @@
 const { analyzeWithAI } = require('../services/ai.service');
-const { analyzeTextNLP } = require('../services/mlService');
-
+const { analyzeTextNLP, forecastVitals } = require('../services/mlService');
 // ─── Text Analysis ────────────────────────────────────────
 const analyzeText = async (req, res) => {
   try {
@@ -130,32 +129,59 @@ const analyzeVitals = async (req, res) => {
       });
     }
 
+    // Call FastAPI forecasting service
+    const forecastResult = await forecastVitals(req.file.path);
+
     const response = {
       file: req.file.filename,
       originalName: req.file.originalname,
       size: req.file.size,
       type: 'vitals',
-      status: 'received',
-      message: 'Vitals CSV received. Time-series forecasting coming in Phase 7.',
-      disclaimer: '⚠️ This is not a medical diagnosis. Please consult a healthcare professional.',
+      forecast: forecastResult.success
+        ? forecastResult.data
+        : null,
+      error: forecastResult.success
+        ? null
+        : forecastResult.error,
+
+      disclaimer:
+        '⚠️ This is not a medical diagnosis. Please consult a healthcare professional.',
+
       expectedFormat: {
-        columns: ['timestamp', 'heart_rate', 'blood_pressure_sys', 'blood_pressure_dia', 'temperature', 'spo2'],
-        example: '2026-01-01 08:00,72,120,80,98.6,99'
+        columns: [
+          'timestamp',
+          'heart_rate',
+          'blood_pressure_sys',
+          'blood_pressure_dia',
+          'temperature',
+          'spo2'
+        ],
+        example:
+          '2026-01-01 08:00,72,120,80,98.6,99'
       },
+
       timestamp: new Date().toISOString(),
       userId: req.user.id,
     };
 
-    res.status(200).json({
+    return res.status(200).json({
       status: 'success',
       data: response,
     });
 
   } catch (error) {
-    res.status(500).json({
+    console.error('Vitals analysis error:', error);
+
+    return res.status(500).json({
       status: 'error',
-      message: error.message,
+      message: error.message || 'Internal server error',
     });
   }
 };
-module.exports = { analyzeText, analyzeVoice, analyzeImage, analyzeVitals };
+
+module.exports = {
+  analyzeText,
+  analyzeVoice,
+  analyzeImage,
+  analyzeVitals,
+};

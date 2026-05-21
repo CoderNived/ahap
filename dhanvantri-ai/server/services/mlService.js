@@ -36,5 +36,41 @@ const analyzeTextNLP = async (text) => {
     return { success: false, error: error.message };
   }
 };
+const forecastVitals = async (filePath) => {
+  try {
+    const fs = require('fs');
+    const path = require('path');
 
-module.exports = { callMLService, analyzeTextNLP, ML_SERVICE_URL };
+    const fileBuffer = fs.readFileSync(filePath);
+    const fileName = path.basename(filePath);
+
+    const boundary = '----FormBoundary' + Date.now();
+
+    const body = Buffer.concat([
+      Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${fileName}"\r\nContent-Type: text/csv\r\n\r\n`),
+      fileBuffer,
+      Buffer.from(`\r\n--${boundary}\r\nContent-Disposition: form-data; name="steps"\r\n\r\n3\r\n--${boundary}--\r\n`)
+    ]);
+
+    const response = await fetch(`${ML_SERVICE_URL}/api/forecast/analyze`, {
+      method: 'POST',
+      body: body,
+      headers: {
+        'Content-Type': `multipart/form-data; boundary=${boundary}`,
+        'Content-Length': body.length,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Forecast service error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    return { success: true, data: data.data };
+
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+module.exports = { callMLService, analyzeTextNLP, forecastVitals, ML_SERVICE_URL };
