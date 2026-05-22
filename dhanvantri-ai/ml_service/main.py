@@ -4,6 +4,7 @@ from routers.cv import router as cv_router
 from routers.nlp import router as nlp_router
 from routers.forecast import router as forecast_router
 from dotenv import load_dotenv
+from routers.orchestrate import router as orchestrate_router
 import os
 
 load_dotenv('../.env')
@@ -26,6 +27,7 @@ app.add_middleware(
 app.include_router(nlp_router, prefix="/api/nlp", tags=["NLP"])
 app.include_router(cv_router, prefix="/api/cv", tags=["Computer Vision"])
 app.include_router(forecast_router, prefix="/api/forecast", tags=["Forecasting"])
+app.include_router(orchestrate_router, prefix="/api/orchestrate", tags=["Orchestration"])
 # ─── Health Route ──────────────────────────────────────────
 @app.get("/api/health")
 async def health_check():
