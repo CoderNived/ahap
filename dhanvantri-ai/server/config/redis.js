@@ -34,3 +34,4 @@ const connectRedis = () => {
 const getRedis = () => redis;
 
 module.exports = { connectRedis, getRedis };
+// just to make git commit work 
