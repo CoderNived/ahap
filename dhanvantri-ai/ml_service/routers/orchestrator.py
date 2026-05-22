@@ -435,4 +435,3 @@ async def run_orchestration_pipeline(
             "error": str(e),
             "disclaimer": "⚠️ This is not a medical diagnosis. Please consult a qualified healthcare professional.",
         }
-    # just to make a commit work
