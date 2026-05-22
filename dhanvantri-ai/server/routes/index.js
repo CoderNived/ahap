@@ -7,5 +7,5 @@ router.use('/auth', require('./auth.route'));
 router.use('/analyze', require('./analyze.route'));
 router.use('/orchestrate', require('./orchestrate.route'));
 router.use('/chats', require('./chat.route'));
-
+router.use('/dashboard', require('./dashboard.route'));
 module.exports = router;
