@@ -6,9 +6,10 @@ const dotenv = require('dotenv');
 const path = require('path');
 const connectDB = require('./config/db');
 const routes = require('./routes');
-
+const { connectRedis } = require('./config/redis');
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 connectDB();
+connectRedis();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
