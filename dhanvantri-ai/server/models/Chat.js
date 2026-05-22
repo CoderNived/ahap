@@ -59,7 +59,7 @@ const chatSchema = new mongoose.Schema(
 );
 
 // Auto-generate title from first user message
-chatSchema.pre('save', function (next) {
+chatSchema.pre('save', async function () {
   if (this.messages.length > 0 && this.title === 'New Chat') {
     const firstMessage = this.messages.find(m => m.role === 'user');
     if (firstMessage) {
@@ -68,8 +68,6 @@ chatSchema.pre('save', function (next) {
     }
   }
   this.lastActivity = new Date();
-  next();
 });
-
 const Chat = mongoose.model('Chat', chatSchema);
 module.exports = Chat;
