@@ -1,0 +1,4 @@
+1. Start fine tuning langchain model 
+2. update frontend of the website
+3. continue with the backend 
+4. add logo to our website 
